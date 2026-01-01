@@ -7,7 +7,7 @@
 这是一个演示项目，包含以下内容：
 
 - UV 基本命令
-- demo1: 一个基于 Flask 的示例应用，实现了基本的 CRUD 操作
+- 基于 Flask 的示例应用，实现了基本的 CRUD 操作
 
 ## UV 基本命令
 
@@ -40,13 +40,49 @@ uv run app.py       # 等同于 uv run python app.py
 
 一个基础的 Flask API 示例，使用内存存储数据，包含基本的 CRUD 操作。
 
-**运行：**
+运行：
 
 ```bash
 uv run demo1/app.py
 ```
 
-**测试示例：**
+测试：
+
+```bash
+# 访问首页
+curl http://127.0.0.1:5000/
+
+# 获取所有用户
+curl http://127.0.0.1:5000/users
+
+# 获取用户1
+curl http://127.0.0.1:5000/users/1
+
+# 创建用户
+curl -X POST http://127.0.0.1:5000/users \
+    -H "Content-Type: application/json" \
+    -d '{"name": "王五", "email": "wangwu@example.com"}'
+
+# 更新用户1
+curl -X PUT http://127.0.0.1:5000/users/1 \
+    -H "Content-Type: application/json" \
+    -d '{"name": "张三更新", "email": "zhangsan@example.com"}'
+
+# 删除用户1
+curl -X DELETE http://127.0.0.1:5000/users/1
+```
+
+## 示例项目 demo2
+
+引入数据库、数据模型、分页查询和完善的错误处理及格式化工具。
+
+运行：
+
+```bash
+uv run demo1/app.py
+```
+
+测试：
 
 ```bash
 # 访问首页
