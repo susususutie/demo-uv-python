@@ -1,31 +1,15 @@
-# UV 包管理器
+# demo-uv-python
 
-UV 是一个 Rust 写的 Python 包管理和项目工具，超快。
+本项目演示了如何使用 UV（一个用 Rust 编写的超快 Python 包管理和项目工具）进行 Python 项目开发。
 
-## 安装
+## 项目概述
 
-安装前打开代理的 TUN 模式，以启用命令行代理。
+这是一个演示项目，包含以下内容：
 
-```bash
-curl -LsSf https://astral.sh/uv/install.sh | sh
-# downloading uv 0.9.18 aarch64-apple-darwin
-# no checksums to verify
-# installing to /Users/sutie/.local/bin
-#   uv
-#   uvx
-# everything's installed!
-```
+- UV 基本命令
+- demo1: 一个基于 Flask 的示例应用，实现了基本的 CRUD 操作
 
-验证安装：
-
-```bash
-uv --version
-# uv 0.9.10 (44f5a14f4 2025-11-17)
-uvx --version
-# uvx 0.9.10 (44f5a14f4 2025-11-17)
-```
-
-## 基本使用
+## UV 基本命令
 
 创建新项目：
 
@@ -40,38 +24,50 @@ uv add pkg          # 添加依赖
 uv remove pkg       # 删除依赖
 ```
 
-## Python 版本管理
+同步依赖：
 
 ```bash
-uv python install 3.12    # 安装 Python 3.12
-uv python list            # 查看可用版本
-uv python find            # 查找已安装版本
-uv python pin             # 为项目指定 Python 版本
-uv python uninstall       # 卸载 Python 版本
+uv sync             # 安装 uv.lock 文件中的所有依赖
 ```
 
-## 更新与卸载
-
-更新 UV：
+运行项目：
 
 ```bash
-uv self update
-# error: GitHub API rate limit exceeded. Please provide a GitHub token via the `--token` option.
-# 如遇 API 限制，使用 GitHub Token 更新
-uv self update --token <github-token>
-# success: Upgraded uv from v0.9.18 to v0.9.21! https://github.com/astral-sh/uv/releases/tag/0.9.21
+uv run app.py       # 等同于 uv run python app.py
 ```
 
-卸载 UV：
+## 示例项目 demo1
+
+一个基础的 Flask API 示例，使用内存存储数据，包含基本的 CRUD 操作。
+
+**运行：**
 
 ```bash
-uv cache clean                    # 清理缓存
-rm -r "$(uv python dir)"           # 删除 Python 安装目录
-rm -r "$(uv tool dir)"            # 删除工具目录
-rm ~/.local/bin/uv ~/.local/bin/uvx  # 删除可执行文件
+uv run demo1/app.py
 ```
 
-## 资源链接
+**测试示例：**
 
-- [UV 官方文档](https://docs.astral.sh/uv/)
-- [生成 Github 访问 token](https://github.com/settings/tokens)
+```bash
+# 访问首页
+curl http://127.0.0.1:5000/
+
+# 获取所有用户
+curl http://127.0.0.1:5000/users
+
+# 获取用户1
+curl http://127.0.0.1:5000/users/1
+
+# 创建用户
+curl -X POST http://127.0.0.1:5000/users \
+    -H "Content-Type: application/json" \
+    -d '{"name": "王五", "email": "wangwu@example.com"}'
+
+# 更新用户1
+curl -X PUT http://127.0.0.1:5000/users/1 \
+    -H "Content-Type: application/json" \
+    -d '{"name": "张三更新", "email": "zhangsan@example.com"}'
+
+# 删除用户1
+curl -X DELETE http://127.0.0.1:5000/users/1
+```
