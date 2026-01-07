@@ -82,6 +82,12 @@ curl -X DELETE http://127.0.0.1:5000/users/1
 cd demo2 && uv run app.py
 ```
 
+生成测试数据：
+
+```bash
+cd demo2 && uv run batch-insert.py # 批量生成测试数据
+```
+
 测试：
 
 ```bash
@@ -116,6 +122,7 @@ curl http://127.0.0.1:5000/api/posts
 
 # 获取文章
 curl http://127.0.0.1:5000/api/posts/1
+curl http://127.0.0.1:5000/api/posts?per_page=5&page=1
 
 # 创建文章
 curl -X POST http://127.0.0.1:5000/api/posts \
