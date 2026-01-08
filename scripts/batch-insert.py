@@ -3,14 +3,14 @@
 # dependencies = ["httpx"]
 # ///
 """
-批量给本地 5000 端口服务灌数据
+批量给本地 3000 端口服务灌数据
 用法：
     uv run batch-insert.py --users 20 --posts 100
 """
 import argparse, random, sys
 import httpx
 
-BASE = "http://127.0.0.1:5000"
+BASE = "http://127.0.0.1:3000"
 USER_ENDPOINT = f"{BASE}/api/users"
 POST_ENDPOINT = f"{BASE}/api/posts"
 

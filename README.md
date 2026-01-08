@@ -50,26 +50,26 @@ uv run demo1/app.py
 
 ```bash
 # 访问首页
-curl http://127.0.0.1:5000/
+curl http://127.0.0.1:3000/
 
 # 获取所有用户
-curl http://127.0.0.1:5000/users
+curl http://127.0.0.1:3000/users
 
 # 获取用户1
-curl http://127.0.0.1:5000/users/1
+curl http://127.0.0.1:3000/users/1
 
 # 创建用户
-curl -X POST http://127.0.0.1:5000/users \
+curl -X POST http://127.0.0.1:3000/users \
     -H "Content-Type: application/json" \
     -d '{"name": "王五", "email": "wangwu@example.com"}'
 
 # 更新用户1
-curl -X PUT http://127.0.0.1:5000/users/1 \
+curl -X PUT http://127.0.0.1:3000/users/1 \
     -H "Content-Type: application/json" \
     -d '{"name": "张三更新", "email": "zhangsan@example.com"}'
 
 # 删除用户1
-curl -X DELETE http://127.0.0.1:5000/users/1
+curl -X DELETE http://127.0.0.1:3000/users/1
 ```
 
 ## 示例项目 demo2
@@ -85,57 +85,57 @@ cd demo2 && uv run app.py
 生成测试数据：
 
 ```bash
-cd demo2 && uv run batch-insert.py # 批量生成测试数据
+uv run scripts/batch-insert.py # 批量生成测试数据
 ```
 
 测试：
 
 ```bash
 # endpoint
-curl http://127.0.0.1:5000/
+curl http://127.0.0.1:3000/
 
 # health
-curl http://127.0.0.1:5000/health
+curl http://127.0.0.1:3000/health
 
 # 获取所有用户
-curl http://127.0.0.1:5000/api/users
+curl http://127.0.0.1:3000/api/users
 
 # 获取用户1
-curl http://127.0.0.1:5000/api/users/1
+curl http://127.0.0.1:3000/api/users/1
 
 # 创建用户
-curl -X POST http://127.0.0.1:5000/api/users \
+curl -X POST http://127.0.0.1:3000/api/users \
     -H "Content-Type: application/json" \
     -d '{"username": "王五", "email": "wangwu@example.com"}'
 
 # 更新用户1
-curl -X PUT http://127.0.0.1:5000/api/users/1 \
+curl -X PUT http://127.0.0.1:3000/api/users/1 \
     -H "Content-Type: application/json" \
     -d '{"username": "张三更新", "email": "zhangsan@example.com"}'
 
 # 删除用户1
-curl -X DELETE http://127.0.0.1:5000/api/users/1
+curl -X DELETE http://127.0.0.1:3000/api/users/1
 
 
 # 获取所有文章
-curl http://127.0.0.1:5000/api/posts
+curl http://127.0.0.1:3000/api/posts
 
 # 获取文章
-curl http://127.0.0.1:5000/api/posts/1
-curl http://127.0.0.1:5000/api/posts?per_page=5&page=1
+curl http://127.0.0.1:3000/api/posts/1
+curl http://127.0.0.1:3000/api/posts?per_page=5&page=1
 
 # 创建文章
-curl -X POST http://127.0.0.1:5000/api/posts \
+curl -X POST http://127.0.0.1:3000/api/posts \
     -H "Content-Type: application/json" \
     -d '{"user_id": 1, "title": "文章标题", "content": "文章内容"}'
 
 # 更新文章
-curl -X PUT http://127.0.0.1:5000/api/posts/1 \
+curl -X PUT http://127.0.0.1:3000/api/posts/1 \
     -H "Content-Type: application/json" \
     -d '{"title": "文章标题更新", "content": "文章内容更新", "published": true}'
 
 # 删除文章
-curl -X DELETE http://127.0.0.1:5000/api/posts/1
+curl -X DELETE http://127.0.0.1:3000/api/posts/1
 ```
 
 ## 数据库文件路径说明
@@ -153,3 +153,58 @@ curl -X DELETE http://127.0.0.1:5000/api/posts/1
 2. 使用绝对路径的数据库 URI
 3. 保持一致的运行方式
 4. 使用环境变量控制数据库路径
+
+## 示例项目 demo3
+
+运行：
+
+```bash
+cd demo3 && uv run run.py
+```
+
+测试：
+
+```bash
+# health
+curl http://127.0.0.1:3000/health
+
+# 获取所有用户
+curl http://127.0.0.1:3000/api/users
+
+# 获取用户1
+curl http://127.0.0.1:3000/api/users/1
+
+# 创建用户
+curl -X POST http://127.0.0.1:3000/api/users \
+    -H "Content-Type: application/json" \
+    -d '{"username": "王五", "email": "wangwu@example.com"}'
+
+# 更新用户1
+curl -X PUT http://127.0.0.1:3000/api/users/1 \
+    -H "Content-Type: application/json" \
+    -d '{"username": "张三更新", "email": "zhangsan@example.com"}'
+
+# 删除用户1
+curl -X DELETE http://127.0.0.1:3000/api/users/1
+
+
+# 获取所有文章
+curl http://127.0.0.1:3000/api/posts
+
+# 获取文章
+curl http://127.0.0.1:3000/api/posts/1
+curl http://127.0.0.1:3000/api/posts?per_page=5&page=1
+
+# 创建文章
+curl -X POST http://127.0.0.1:3000/api/posts \
+    -H "Content-Type: application/json" \
+    -d '{"user_id": 1, "title": "文章标题", "content": "文章内容"}'
+
+# 更新文章
+curl -X PUT http://127.0.0.1:3000/api/posts/1 \
+    -H "Content-Type: application/json" \
+    -d '{"title": "文章标题更新", "content": "文章内容更新", "published": true}'
+
+# 删除文章
+curl -X DELETE http://127.0.0.1:3000/api/posts/1
+```
