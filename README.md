@@ -208,3 +208,39 @@ curl -X PUT http://127.0.0.1:3000/api/posts/1 \
 # 删除文章
 curl -X DELETE http://127.0.0.1:3000/api/posts/1
 ```
+
+## 数据库迁移
+
+数据库表结构更改后需要进行迁移。
+
+1. 确保在项目最初，执行 db migrate init 创建 migrations/ 目录和版本管理骨架，此时数据库里不需要任何表也能成功。
+
+```bash
+uv run flask --app "app:create_app('develop')" db init
+```
+
+2. 表结构更改，即更改 models，此时设置可以为空，以兼容旧数据
+
+```python
+  updated_at = db.Column(
+      db.DateTime,
+      default=datetime.now(timezone.utc),
+      onupdate=datetime.now(timezone.utc),
+      nullable=True,
+  )
+```
+
+3. 生成迁移脚本
+
+```bash
+uv run flask --app "app:create_app('develop')" db migrate -m "Add updated_at field to Post model"   # ② 生成差异脚本，添加迁移注释
+uv run flask --app "app:create_app('develop')" db upgrade            # ③ 把差异刷进库，使更改生效
+```
+
+4. 升级后处理旧数据，直接在数据库目录下执行脚本，将旧数据的 updated_at 设为 created_at
+
+```bash
+sqlite3 dev.db "UPDATE post SET updated_at = created_at WHERE updated_at IS NULL;"
+```
+
+5. 处理完成后可讲 model 中对应字段改为非空 `nullable=False`

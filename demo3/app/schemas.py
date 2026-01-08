@@ -18,6 +18,7 @@ class PostSchema(Schema):
     content = fields.Str()
     published = fields.Bool(load_default=False, dump_default=False)  # 默认 False
     created_at = fields.DateTime(dump_only=True)
+    updated_at = fields.DateTime(dump_only=True)
     user_id = fields.Int(required=True, load_only=True)  # 写入时必需，返回不展示
 
 

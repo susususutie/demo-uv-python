@@ -1,4 +1,4 @@
-from datetime import datetime,timezone
+from datetime import datetime, timezone
 from app.extensions import db
 
 
@@ -22,4 +22,10 @@ class Post(db.Model):
     content = db.Column(db.Text)
     published = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.now(timezone.utc))
+    updated_at = db.Column(
+        db.DateTime,
+        default=datetime.now(timezone.utc),
+        onupdate=datetime.now(timezone.utc),
+        nullable=False,
+    )
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
