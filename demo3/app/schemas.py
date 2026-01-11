@@ -19,7 +19,8 @@ class PostSchema(Schema):
     published = fields.Bool(load_default=False, dump_default=False)  # 默认 False
     created_at = fields.DateTime(dump_only=True)
     updated_at = fields.DateTime(dump_only=True)
-    user_id = fields.Int(required=True, load_only=True)  # 写入时必需，返回不展示
+    # data_key="userId" 表示前端传来json的 key 名为 userId，同时在返回json中也使用 userId
+    user_id = fields.Int(required=True, dump_only=True)
 
 
 # 单例

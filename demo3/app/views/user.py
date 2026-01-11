@@ -2,14 +2,46 @@
 from flask import Blueprint, request, jsonify
 from app.models import User, db
 from app.schemas import user_schema
+from app.utils import apply_filter, apply_sort, get_page_params, to_pagination_dict
 
 bp = Blueprint("user", __name__, url_prefix="/api/users")
 
 
 @bp.get("")
 def list_users():
-    users = User.query.all()
-    return jsonify(user_schema.dump(users, many=True))
+    query = User.query
+    p = request.args.to_dict()
+
+    query = apply_filter(
+        query,
+        User,
+        allowed_cols={
+            # "id": ("id", "exact"),
+            "keyword": ("username,email", "contains"),
+            "username": ("username", "contains"),
+            "email": ("email", "contains"),
+            # "age_min": ("age", "gte"),
+        },
+        params=p,
+    )
+    query = apply_sort(
+        query,
+        User,
+        allowed_cols={"username", "email", "created_at"},
+        default_col="created_at",
+        default_dir="desc",
+        params=p,
+    )
+    pager = get_page_params(params=p)
+
+    pagination = query.paginate(error_out=False, **pager)
+
+    return jsonify(
+        {
+            "list": ser_schema.dump(pagination.items, many=True),
+            "pagination": to_pagination_dict(pagination),
+        }
+    )
 
 
 @bp.post("")

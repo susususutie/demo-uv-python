@@ -3,6 +3,7 @@ from flask import Blueprint, request, jsonify
 from app.extensions import db
 from app.models import Post, User
 from app.schemas import post_schema, posts_schema
+from app.utils import apply_filter, apply_sort, get_page_params, to_pagination_dict
 
 bp = Blueprint("post", __name__, url_prefix="/api/posts")
 
@@ -10,8 +11,36 @@ bp = Blueprint("post", __name__, url_prefix="/api/posts")
 # 获取所有文章
 @bp.get("")
 def list_posts():
-    posts = Post.query.all()
-    return jsonify(posts_schema.dump(posts))
+    query = Post.query
+    p = request.args.to_dict()
+
+    query = apply_filter(
+        query,
+        Post,
+        allowed_cols={
+            "keyword": ("title,content", "contains"),
+            "title": ("title", "contains"),
+            "description": ("description", "contains"),
+        },
+        params=p,
+    )
+    query = apply_sort(
+        query,
+        Post,
+        allowed_cols={"title", "created_at", "updated_at"},
+        default_col="updated_at",
+        default_dir="desc",
+    )
+    pager = get_page_params(params=p)
+
+    pagination = query.paginate(error_out=False, **pager)
+
+    return jsonify(
+        {
+            "list": posts_schema.dump(pagination.items, many=True),
+            "pagination": to_pagination_dict(pagination),
+        }
+    )
 
 
 # 创建文章
