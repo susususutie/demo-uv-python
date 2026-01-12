@@ -1,6 +1,13 @@
 from datetime import datetime, timezone
 from app.extensions import db
 
+# 定义Post和Tag的关联表
+# post_tags = db.Table(
+#     "post_tags",
+#     db.Column("post_id", db.Integer, db.ForeignKey("posts.id"), primary_key=True),
+#     db.Column("tag_id", db.Integer, db.ForeignKey("tags.id"), primary_key=True),
+# )
+
 
 class User(db.Model):
     __tablename__ = "users"
@@ -14,6 +21,20 @@ class User(db.Model):
         "Post", backref="author", lazy="dynamic", cascade="all, delete-orphan"
     )
 
+class Tag(db.Model):
+    __tablename__ = "tags"
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), nullable=False, unique=True)
+    created_at = db.Column(db.DateTime, default=datetime.now(timezone.utc))
+    updated_at = db.Column(
+        db.DateTime,
+        default=datetime.now(timezone.utc),
+        onupdate=datetime.now(timezone.utc),
+        nullable=False,
+    )
+
+    def __repr__(self):
+        return f"<Tag {self.name}>"
 
 class Post(db.Model):
     __tablename__ = "posts"

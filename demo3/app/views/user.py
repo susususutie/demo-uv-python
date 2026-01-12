@@ -38,7 +38,7 @@ def list_users():
 
     return jsonify(
         {
-            "list": ser_schema.dump(pagination.items, many=True),
+            "list": user_schema.dump(pagination.items, many=True),
             "pagination": to_pagination_dict(pagination),
         }
     )

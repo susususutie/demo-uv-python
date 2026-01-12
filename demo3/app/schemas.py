@@ -1,6 +1,18 @@
 from marshmallow import Schema, fields, validate
 
 
+class TagSchema(Schema):
+    id = fields.Int(dump_only=True)
+    name = fields.Str(required=True, validate=validate.Length(min=1, max=50))
+    created_at = fields.DateTime(dump_only=True)
+    updated_at = fields.DateTime(dump_only=True)
+
+
+# 单例
+tag_schema = TagSchema()
+tags_schema = TagSchema(many=True)
+
+
 class UserSchema(Schema):
     id = fields.Int(dump_only=True)
     username = fields.Str(required=True, validate=validate.Length(min=2, max=80))
