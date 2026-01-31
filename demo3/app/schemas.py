@@ -18,6 +18,7 @@ class UserSchema(Schema):
     username = fields.Str(required=True, validate=validate.Length(min=2, max=80))
     email = fields.Email(required=True)
     created_at = fields.DateTime(dump_only=True)
+    article_count = fields.Int(dump_only=True, dump_default=0)
 
 
 # 单例供视图直接调用
@@ -32,7 +33,7 @@ class PostSchema(Schema):
     created_at = fields.DateTime(dump_only=True)
     updated_at = fields.DateTime(dump_only=True)
     # data_key="userId" 表示前端传来json的 key 名为 userId，同时在返回json中也使用 userId
-    user_id = fields.Int(required=True, dump_only=True)
+    user_id = fields.Int(required=True)
 
 
 # 单例

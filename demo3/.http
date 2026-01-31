@@ -1,0 +1,128 @@
+@baseUrl = http://127.0.0.1:3000
+@contentType = application/json
+
+### ==========================================
+### SYSTEM
+### ==========================================
+
+### Health Check
+GET {{baseUrl}}/health
+
+### List All Endpoints
+# Returns all registered routes and their documentation
+GET {{baseUrl}}/api/endpoints
+
+### ==========================================
+### USERS
+### ==========================================
+
+### List Users (Default)
+GET {{baseUrl}}/api/users
+
+### List Users (Pagination & Sorting)
+# sort: username, email, created_at
+# order: asc, desc
+GET {{baseUrl}}/api/users?page=1&per_page=5&sort=created_at&order=desc
+
+### Search Users
+# keyword matches username or email
+GET {{baseUrl}}/api/users?keyword=http
+
+### Create User
+# @name createUser
+POST {{baseUrl}}/api/users
+Content-Type: {{contentType}}
+
+{
+  "username": "http_user_test",
+  "email": "http_test@example.com"
+}
+
+### Get User Details
+# Replace :id with the ID from the createUser response (e.g., 1)
+@userId = 1
+GET {{baseUrl}}/api/users/{{userId}}
+
+### Update User
+PUT {{baseUrl}}/api/users/{{userId}}
+Content-Type: {{contentType}}
+
+{
+  "username": "http_user_updated",
+  "email": "http_updated@example.com"
+}
+
+### Delete User
+DELETE {{baseUrl}}/api/users/{{userId}}
+
+### ==========================================
+### TAGS
+### ==========================================
+
+### List Tags
+GET {{baseUrl}}/api/tags
+
+### Create Tag
+# @name createTag
+POST {{baseUrl}}/api/tags
+Content-Type: {{contentType}}
+
+{
+  "name": "testing-tag"
+}
+
+### Get Tag
+# Replace :id with actual tag ID
+@tagId = 1
+GET {{baseUrl}}/api/tags/{{tagId}}
+
+### Update Tag
+PUT {{baseUrl}}/api/tags/{{tagId}}
+Content-Type: {{contentType}}
+
+{
+  "name": "testing-tag-updated"
+}
+
+### Delete Tag
+DELETE {{baseUrl}}/api/tags/{{tagId}}
+
+### ==========================================
+### POSTS
+### ==========================================
+
+### List Posts
+GET {{baseUrl}}/api/posts
+
+### List Posts (Search & Filter)
+# keyword matches title or content
+GET {{baseUrl}}/api/posts?keyword=Test&sort=updated_at&order=desc
+
+### Create Post
+# Requires a valid user_id (make sure user exists)
+POST {{baseUrl}}/api/posts
+Content-Type: {{contentType}}
+
+{
+  "title": "Test Post from HTTP Client",
+  "content": "This is a content body created via VS Code REST Client.",
+  "user_id": 1,
+  "published": true
+}
+
+### Get Post
+# Replace :id with actual post ID
+@postId = 1
+GET {{baseUrl}}/api/posts/{{postId}}
+
+### Update Post
+PUT {{baseUrl}}/api/posts/{{postId}}
+Content-Type: {{contentType}}
+
+{
+  "title": "Updated Post Title",
+  "content": "Updated content content content."
+}
+
+### Delete Post
+DELETE {{baseUrl}}/api/posts/{{postId}}

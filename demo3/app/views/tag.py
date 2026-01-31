@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, abort
 from app.extensions import db
 from app.models import Tag
 from app.schemas import tag_schema, tags_schema
@@ -9,7 +9,7 @@ bp = Blueprint("tag", __name__, url_prefix="/api/tags")
 
 @bp.get("")
 def list_tags():
-    query = Tag.query
+    query = db.session.query(Tag)
     p = request.args.to_dict()
 
     query = apply_filter(
@@ -45,7 +45,7 @@ def create_tag():
     data = tag_schema.load(request.json)
     
     # Check if tag name already exists
-    existing_tag = Tag.query.filter_by(name=data["name"]).first()
+    existing_tag = db.session.query(Tag).filter_by(name=data["name"]).first()
     if existing_tag:
         return jsonify({"error": "Tag name already exists"}), 400
     
@@ -57,18 +57,18 @@ def create_tag():
 
 @bp.get("/<int:id>")
 def get_tag(id):
-    tag = Tag.query.get_or_404(id)
+    tag = db.session.get(Tag, id) or abort(404)
     return jsonify(tag_schema.dump(tag))
 
 
 @bp.put("/<int:id>")
 def update_tag(id):
-    tag = Tag.query.get_or_404(id)
+    tag = db.session.get(Tag, id) or abort(404)
     data = tag_schema.load(request.json, partial=True)
     
     # Check if new name conflicts with existing tag
     if "name" in data:
-        existing_tag = Tag.query.filter(Tag.name == data["name"], Tag.id != id).first()
+        existing_tag = db.session.query(Tag).filter(Tag.name == data["name"], Tag.id != id).first()
         if existing_tag:
             return jsonify({"error": "Tag name already exists"}), 400
     if "name" not in data:
@@ -81,7 +81,7 @@ def update_tag(id):
 
 @bp.delete("/<int:id>")
 def delete_tag(id):
-    tag = Tag.query.get_or_404(id)
+    tag = db.session.get(Tag, id) or abort(404)
     db.session.delete(tag)
     db.session.commit()
     return jsonify({"success": True, "message": "Tag deleted"}), 204

@@ -162,9 +162,18 @@ curl -X DELETE http://127.0.0.1:3000/api/posts/1
 cd demo3 && uv run run.py
 ```
 
-测试：
+单元测试：
 
 ```bash
+PYTHONPATH=demo3 uv run pytest demo3/tests
+```
+
+测试接口：
+
+```bash
+# 获取所有接口定义（自动化分析用）
+curl http://127.0.0.1:3000/api/endpoints
+
 # health
 curl http://127.0.0.1:3000/health
 
@@ -207,6 +216,26 @@ curl -X PUT http://127.0.0.1:3000/api/posts/1 \
 
 # 删除文章
 curl -X DELETE http://127.0.0.1:3000/api/posts/1
+
+
+# 获取所有标签
+curl http://127.0.0.1:3000/api/tags
+
+# 创建标签
+curl -X POST http://127.0.0.1:3000/api/tags \
+    -H "Content-Type: application/json" \
+    -d '{"name": "Python"}'
+
+# 获取标签
+curl http://127.0.0.1:3000/api/tags/1
+
+# 更新标签
+curl -X PUT http://127.0.0.1:3000/api/tags/1 \
+    -H "Content-Type: application/json" \
+    -d '{"name": "Python3"}'
+
+# 删除标签
+curl -X DELETE http://127.0.0.1:3000/api/tags/1
 ```
 
 ## 数据库迁移
