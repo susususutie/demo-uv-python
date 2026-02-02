@@ -1,275 +1,367 @@
-# demo-uv-python
+# Demo UV Python - Python API 开发入门教程
 
-本项目演示了如何使用 UV（一个用 Rust 编写的超快 Python 包管理和项目工具）进行 Python 项目开发。
+[![Python 3.13+](https://img.shields.io/badge/python-3.13+-blue.svg)](https://www.python.org/downloads/)
+[![Flask 3.x](https://img.shields.io/badge/flask-3.x-green.svg)](https://flask.palletsprojects.com/)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![UV](https://img.shields.io/badge/uv-powered-purple.svg)](https://docs.astral.sh/uv/)
 
-## 项目概述
+本项目是一个面向 Python 初学者的 API 开发入门教学项目，通过三个循序渐进的演示示例，系统教授复杂 Python API 的开发流程与最佳实践。
 
-这是一个演示项目，包含以下内容：
+## 📚 学习目标
 
-- UV 基本命令
-- 基于 Flask 的示例应用，实现了基本的 CRUD 操作
+通过本项目，你将学习到：
 
-## UV 基本命令
+- ✅ Flask 框架的基础和高级用法
+- ✅ RESTful API 设计原则
+- ✅ 数据库 ORM（SQLAlchemy）使用
+- ✅ 数据序列化和验证（Marshmallow）
+- ✅ 应用架构设计（应用工厂、蓝图）
+- ✅ 数据库迁移管理
+- ✅ 错误处理和日志配置
+- ✅ 单元测试和集成测试
+- ✅ 使用 UV 进行 Python 项目管理
 
-创建新项目：
+## 🏗️ 项目结构
 
-```bash
-uv init project-name
+```
+demo-uv-python/
+├── demo1/                 # 基础示例：内存存储
+│   ├── app.py
+│   ├── tests/
+│   └── README.md
+├── demo2/                 # 进阶示例：数据库持久化
+│   ├── app.py
+│   ├── tests/
+│   └── README.md
+├── demo3/                 # 生产示例：模块化架构
+│   ├── app/
+│   ├── tests/
+│   ├── migrations/
+│   └── README.md
+├── scripts/               # 工具脚本
+├── pyproject.toml        # UV 项目配置
+├── AGENTS.md            # 开发规范和工具选型说明
+└── README.md            # 本文档
 ```
 
-管理依赖：
+## 🚀 快速开始
+
+### 环境要求
+
+- Python >= 3.13
+- [UV](https://docs.astral.sh/uv/) - 现代 Python 包管理器
+
+> **为什么选择 UV？**
+> - ⚡ 极速：使用 Rust 编写，比 pip 快 10-100 倍
+> - 📦 一体化：替代 pip、venv、pip-tools、virtualenv 等工具
+> - 🔒 锁定文件：自动生成 `uv.lock` 确保环境一致
+> - 🚀 原生支持：无需额外工具即可运行脚本
+
+### 安装依赖
 
 ```bash
-uv add pkg          # 添加依赖
-uv remove pkg       # 删除依赖
+# 克隆项目后，安装所有依赖
+uv sync
+
+# 安装开发依赖（包含测试工具）
+uv sync --group dev
 ```
 
-同步依赖：
+## 🛠️ 常用命令
+
+本项目采用**原生 UV 命令**运行，无需额外配置。所有命令都通过 `uv run` 直接执行。
+
+### 运行示例
 
 ```bash
-uv sync             # 安装 uv.lock 文件中的所有依赖
+# 运行 Demo1（基础 API）
+uv run demo1/app.py
+
+# 运行 Demo2（数据库版）
+cd demo2 && uv run app.py
+
+# 运行 Demo3（生产级）
+cd demo3 && uv run run.py
 ```
 
-运行项目：
+### 测试
 
 ```bash
-uv run app.py       # 等同于 uv run python app.py
+# 分别运行各示例测试（推荐，避免模块名冲突）
+uv run pytest demo1/tests -v
+uv run pytest demo2/tests -v
+uv run pytest demo3/tests -v
+
+# 或使用分号顺序执行
+uv run pytest demo1/tests -v && uv run pytest demo2/tests -v && uv run pytest demo3/tests -v
 ```
 
-## 示例项目 demo1
+### 代码质量
 
-一个基础的 Flask API 示例，使用内存存储数据，包含基本的 CRUD 操作。
+```bash
+# 格式化代码
+uv run black demo1/ demo2/ demo3/ --line-length 88
 
-运行：
+# 语法检查
+uv run python -m py_compile demo1/app.py demo2/app.py demo3/run.py
+
+# 清理缓存文件
+find . -type d -name '__pycache__' -exec rm -rf {} + 2>/dev/null || true
+```
+
+### 数据库操作（Demo3）
+
+```bash
+# 初始化迁移（首次）
+cd demo3 && uv run flask --app "app:create_app('develop')" db init
+
+# 生成迁移脚本
+cd demo3 && uv run flask --app "app:create_app('develop')" db migrate -m "描述信息"
+
+# 应用迁移
+cd demo3 && uv run flask --app "app:create_app('develop')" db upgrade
+```
+
+### 其他工具
+
+```bash
+# 生成测试数据
+uv run scripts/batch-insert.py --users 10 --posts 5
+```
+
+## 📖 三个演示示例
+
+### Demo1: 基础 Flask API
+
+**特点**：
+- 单文件应用结构
+- 内存数据存储
+- 基础 CRUD 操作
+- 简单错误处理
+
+**适合学习**：Flask 基础、路由定义、请求处理
 
 ```bash
 uv run demo1/app.py
 ```
 
-测试：
+[查看详情 →](demo1/README.md)
 
-```bash
-# 访问首页
-curl http://127.0.0.1:3000/
+### Demo2: 数据库版 API
 
-# 获取所有用户
-curl http://127.0.0.1:3000/users
+**特点**：
+- SQLite 数据持久化
+- SQLAlchemy ORM
+- 一对多关联关系
+- 分页查询和筛选
+- 结构化错误响应
 
-# 获取用户1
-curl http://127.0.0.1:3000/users/1
-
-# 创建用户
-curl -X POST http://127.0.0.1:3000/users \
-    -H "Content-Type: application/json" \
-    -d '{"name": "王五", "email": "wangwu@example.com"}'
-
-# 更新用户1
-curl -X PUT http://127.0.0.1:3000/users/1 \
-    -H "Content-Type: application/json" \
-    -d '{"name": "张三更新", "email": "zhangsan@example.com"}'
-
-# 删除用户1
-curl -X DELETE http://127.0.0.1:3000/users/1
-```
-
-## 示例项目 demo2
-
-引入数据库、数据模型、分页查询和完善的错误处理及格式化工具。
-
-运行：
+**适合学习**：数据库操作、ORM 使用、查询优化
 
 ```bash
 cd demo2 && uv run app.py
 ```
 
-生成测试数据：
+[查看详情 →](demo2/README.md)
 
-```bash
-uv run scripts/batch-insert.py # 批量生成测试数据
-```
+### Demo3: 生产级模块化 API
 
-测试：
+**特点**：
+- 应用工厂模式
+- 蓝图组织路由
+- 数据库迁移（Alembic）
+- Marshmallow 数据验证
+- 统一响应格式
+- 完整错误处理
+- 日志配置
+- 全面测试覆盖
 
-```bash
-# endpoint
-curl http://127.0.0.1:3000/
-
-# health
-curl http://127.0.0.1:3000/health
-
-# 获取所有用户
-curl http://127.0.0.1:3000/api/users
-
-# 获取用户1
-curl http://127.0.0.1:3000/api/users/1
-
-# 创建用户
-curl -X POST http://127.0.0.1:3000/api/users \
-    -H "Content-Type: application/json" \
-    -d '{"username": "王五", "email": "wangwu@example.com"}'
-
-# 更新用户1
-curl -X PUT http://127.0.0.1:3000/api/users/1 \
-    -H "Content-Type: application/json" \
-    -d '{"username": "张三更新", "email": "zhangsan@example.com"}'
-
-# 删除用户1
-curl -X DELETE http://127.0.0.1:3000/api/users/1
-
-
-# 获取所有文章
-curl http://127.0.0.1:3000/api/posts
-
-# 获取文章
-curl http://127.0.0.1:3000/api/posts/1
-curl http://127.0.0.1:3000/api/posts?per_page=5&page=1
-
-# 创建文章
-curl -X POST http://127.0.0.1:3000/api/posts \
-    -H "Content-Type: application/json" \
-    -d '{"user_id": 1, "title": "文章标题", "content": "文章内容"}'
-
-# 更新文章
-curl -X PUT http://127.0.0.1:3000/api/posts/1 \
-    -H "Content-Type: application/json" \
-    -d '{"title": "文章标题更新", "content": "文章内容更新", "published": true}'
-
-# 删除文章
-curl -X DELETE http://127.0.0.1:3000/api/posts/1
-```
-
-## 数据库文件路径说明
-
-运行 `demo2/app.py` 时，数据库文件位置取决于运行方式：
-
-- `uv run demo2/app.py` → 项目根目录创建 `instance/api.db`
-- `cd demo2 && uv run app.py` → demo2 目录创建 `instance/api.db`
-
-**原因**：Flask-SQLAlchemy 3.x 将 SQLite 数据库创建在 Flask 实例目录中，实例目录位置取决于工作目录。
-
-**解决方案**：
-
-1. 显式指定实例目录路径
-2. 使用绝对路径的数据库 URI
-3. 保持一致的运行方式
-4. 使用环境变量控制数据库路径
-
-## 示例项目 demo3
-
-运行：
+**适合学习**：大型项目架构、生产最佳实践
 
 ```bash
 cd demo3 && uv run run.py
 ```
 
-单元测试：
+[查看详情 →](demo3/README.md)
+
+## 📊 示例演进对比
+
+| 特性 | Demo1 | Demo2 | Demo3 |
+|------|-------|-------|-------|
+| 存储方式 | 内存 | SQLite | SQLite |
+| 数据持久化 | ❌ | ✅ | ✅ |
+| ORM | ❌ | SQLAlchemy | SQLAlchemy |
+| 代码结构 | 单文件 | 单文件 | 模块化 |
+| 应用工厂 | ❌ | ❌ | ✅ |
+| 蓝图路由 | ❌ | ❌ | ✅ |
+| 数据验证 | 手动 | 手动 | Marshmallow |
+| 数据库迁移 | ❌ | ❌ | ✅ |
+| 错误处理 | 简单 | 结构化 | 完整异常类 |
+| 测试覆盖 | ✅ | ✅ | ✅ |
+| 生产就绪 | ❌ | ❌ | ✅ |
+
+## 🧪 测试详情
 
 ```bash
-PYTHONPATH=demo3 uv run pytest demo3/tests
+# 分别运行各示例测试并生成覆盖率报告
+uv run pytest demo1/tests --cov=demo1 --cov-report=html
+uv run pytest demo2/tests --cov=demo2 --cov-report=html
+uv run pytest demo3/tests --cov=app --cov-report=html
+
+# 查看 HTML 报告
+open htmlcov/index.html  # macOS
 ```
 
-测试接口：
+## 📡 API 使用示例
+
+启动任意 Demo 后，可以使用以下命令测试 API：
 
 ```bash
-# 获取所有接口定义（自动化分析用）
-curl http://127.0.0.1:3000/api/endpoints
-
-# health
+# 健康检查
 curl http://127.0.0.1:3000/health
-
-# 获取所有用户
-curl http://127.0.0.1:3000/api/users
-
-# 获取用户1
-curl http://127.0.0.1:3000/api/users/1
 
 # 创建用户
 curl -X POST http://127.0.0.1:3000/api/users \
     -H "Content-Type: application/json" \
-    -d '{"username": "王五", "email": "wangwu@example.com"}'
+    -d '{"username": "张三", "email": "zhangsan@example.com"}'
 
-# 更新用户1
-curl -X PUT http://127.0.0.1:3000/api/users/1 \
-    -H "Content-Type: application/json" \
-    -d '{"username": "张三更新", "email": "zhangsan@example.com"}'
+# 获取用户列表（分页）
+curl "http://127.0.0.1:3000/api/users?page=1&per_page=5"
 
-# 删除用户1
-curl -X DELETE http://127.0.0.1:3000/api/users/1
-
-
-# 获取所有文章
-curl http://127.0.0.1:3000/api/posts
-
-# 获取文章
-curl http://127.0.0.1:3000/api/posts/1
-curl http://127.0.0.1:3000/api/posts?per_page=5&page=1
+# 搜索用户
+curl "http://127.0.0.1:3000/api/users?keyword=zhang"
 
 # 创建文章
 curl -X POST http://127.0.0.1:3000/api/posts \
     -H "Content-Type: application/json" \
-    -d '{"user_id": 1, "title": "文章标题", "content": "文章内容"}'
+    -d '{"user_id": 1, "title": "第一篇文章", "content": "内容..."}'
 
-# 更新文章
-curl -X PUT http://127.0.0.1:3000/api/posts/1 \
-    -H "Content-Type: application/json" \
-    -d '{"title": "文章标题更新", "content": "文章内容更新", "published": true}'
-
-# 删除文章
-curl -X DELETE http://127.0.0.1:3000/api/posts/1
-
-
-# 获取所有标签
-curl http://127.0.0.1:3000/api/tags
-
-# 创建标签
-curl -X POST http://127.0.0.1:3000/api/tags \
-    -H "Content-Type: application/json" \
-    -d '{"name": "Python"}'
-
-# 获取标签
-curl http://127.0.0.1:3000/api/tags/1
-
-# 更新标签
-curl -X PUT http://127.0.0.1:3000/api/tags/1 \
-    -H "Content-Type: application/json" \
-    -d '{"name": "Python3"}'
-
-# 删除标签
-curl -X DELETE http://127.0.0.1:3000/api/tags/1
+# 获取已发布文章
+curl "http://127.0.0.1:3000/api/posts?published=true"
 ```
 
-## 数据库迁移
+## ⚙️ 配置说明
 
-数据库表结构更改后需要进行迁移。
-
-1. 确保在项目最初，执行 db migrate init 创建 migrations/ 目录和版本管理骨架，此时数据库里不需要任何表也能成功。
+### 环境变量
 
 ```bash
-uv run flask --app "app:create_app('develop')" db init
+# 配置环境（develop/test/product）
+export FLASK_CONFIG=develop
+
+# 数据库 URL（生产环境）
+export DATABASE_URL=postgresql://user:pass@localhost/dbname
+
+# 密钥（生产环境必需）
+export SECRET_KEY=your-secret-key
 ```
 
-2. 表结构更改，即更改 models，此时设置可以为空，以兼容旧数据
+### 代码风格
 
-```python
-  updated_at = db.Column(
-      db.DateTime,
-      default=datetime.now(timezone.utc),
-      onupdate=datetime.now(timezone.utc),
-      nullable=True,
-  )
-```
-
-3. 生成迁移脚本
+本项目使用 [Black](https://github.com/psf/black) 进行代码格式化：
 
 ```bash
-uv run flask --app "app:create_app('develop')" db migrate -m "Add updated_at field to Post model"   # ② 生成差异脚本，添加迁移注释
-uv run flask --app "app:create_app('develop')" db upgrade            # ③ 把差异刷进库，使更改生效
+# 格式化代码
+uv run black demo1/ demo2/ demo3/ --line-length 88
 ```
 
-4. 升级后处理旧数据，直接在数据库目录下执行脚本，将旧数据的 updated_at 设为 created_at
+## 📚 学习路径建议
+
+### 初学者路径
+
+1. **Demo1**：理解 Flask 基础概念
+   - 路由定义
+   - 请求处理
+   - JSON 响应
+
+2. **Demo2**：学习数据库操作
+   - SQLAlchemy ORM
+   - 数据模型定义
+   - 关联关系
+
+3. **Demo3**：掌握生产级架构
+   - 应用工厂
+   - 蓝图组织
+   - 数据库迁移
+
+### 进阶学习
+
+- 阅读 [AGENTS.md](AGENTS.md) 了解开发规范和工具选型
+- 查看测试文件学习测试编写
+- 研究错误处理和日志配置
+
+## 🎯 工具选型说明
+
+### 为什么选择原生 UV 命令？
+
+本项目直接使用 `uv run` 命令运行，**不引入 Makefile、Taskipy 或 Poe** 等额外工具。
+
+#### 方案对比
+
+| 方案 | 优点 | 缺点 | 选择 |
+|------|------|------|------|
+| **Makefile** | 通用、历史悠久 | 语法古老、Windows 需额外安装 | ❌ |
+| **Taskipy** | 轻量、集成 pyproject.toml | 额外依赖 | ❌ |
+| **Poe the Poet** | 功能丰富、任务依赖 | 额外依赖、配置复杂 | ❌ |
+| **原生 UV** | 零额外依赖、简单直接 | 命令稍长 | ✅ |
+
+#### 选择理由
+
+1. **教学友好**
+   - 初学者只需学习 UV 一个工具
+   - 无需理解 Makefile 的 Tab 缩进规则
+   - 无需学习 Taskipy/Poe 的配置语法
+
+2. **依赖最小化**
+   - 零额外依赖（仅需 UV）
+   - 避免工具链过于复杂
+   - 降低环境配置门槛
+
+3. **透明直接**
+   - 命令直接可见，无封装黑盒
+   - 便于理解每个命令的具体作用
+   - 调试更方便
+
+4. **未来可迁移**
+   - 当项目复杂化时，可随时引入 Taskipy/Poe
+   - 迁移成本极低（只是命令别名）
+
+#### 何时应该引入 Taskipy/Poe？
+
+当项目出现以下情况时，建议迁移到 Taskipy：
+
+- 命令数量超过 10 个，记忆困难
+- 存在复杂的命令依赖链（如 `test` 依赖 `lint`）
+- 需要频繁切换不同参数运行同一命令
+- 团队成员对 Makefile 不熟悉且环境不统一
+
+**迁移示例**（当前原生 UV → 未来 Taskipy）：
 
 ```bash
-sqlite3 dev.db "UPDATE post SET updated_at = created_at WHERE updated_at IS NULL;"
+# 当前：原生 UV
+uv run pytest demo1/tests -v
+
+# 未来：Taskipy
+uv run task test-demo1
 ```
 
-5. 处理完成后可讲 model 中对应字段改为非空 `nullable=False`
+只需在 `pyproject.toml` 添加配置，命令本身无需修改。
+
+## 🔗 相关资源
+
+- [Flask 官方文档](https://flask.palletsprojects.com/)
+- [Flask-SQLAlchemy](https://flask-sqlalchemy.palletsprojects.com/)
+- [Flask-Migrate](https://flask-migrate.readthedocs.io/)
+- [Marshmallow](https://marshmallow.readthedocs.io/)
+- [UV 文档](https://docs.astral.sh/uv/)
+
+## 📝 许可证
+
+MIT License
+
+## 🤝 贡献
+
+欢迎提交 Issue 和 PR！
+
+---
+
+> 💡 **提示**：每个 Demo 目录下都有详细的 README.md 文档，包含该示例的详细说明和使用方法。

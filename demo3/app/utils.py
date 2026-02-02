@@ -1,15 +1,18 @@
 from flask import request
-from typing import Dict, Tuple, Literal
+from typing import Literal
 from sqlalchemy import asc, desc, or_
 
 
 def get_page_params(max_per_page=100, default_per_page=10, params=None):
-    """
-    从查询参数中提取统一的分页信息。
+    """从查询参数中提取统一的分页信息。
 
-    :param max_per_page: 每页上限，默认 100
-    :param default_per_page: 默认每页数量，默认 10
-    :return: {"page": int, "per_page": int}
+    Args:
+        max_per_page: 每页上限，默认 100
+        default_per_page: 默认每页数量，默认 10
+        params: 查询参数，如果为None则使用request.args
+
+    Returns:
+        包含分页信息的字典，格式为 {"page": int, "per_page": int}
     """
     if params is None:
         params = request.args
@@ -29,9 +32,15 @@ def get_page_params(max_per_page=100, default_per_page=10, params=None):
 
 
 def to_pagination_dict(pagination):
-    """
-    仅把 SQLAlchemy Pagination 对象的分页元信息转成 dict，
+    """仅把 SQLAlchemy Pagination 对象的分页元信息转成 dict。
+
     不包含任何 list/records 数据。
+
+    Args:
+        pagination: SQLAlchemy Pagination 对象
+
+    Returns:
+        包含分页元信息的字典
     """
     return {
         "page": pagination.page,
@@ -44,30 +53,39 @@ def to_pagination_dict(pagination):
 
 
 # 类型别名：只接受 (字段, 操作符) 元组，操作符固定可选值
-OpSpec = Tuple[str, Literal["exact", "contains", "gt", "gte", "lt", "lte"]]
+OpSpec = tuple[str, Literal["exact", "contains", "gt", "gte", "lt", "lte"]]
 
 
 def apply_filter(
     query,
     model,
-    allowed_cols: Dict[str, OpSpec],
+    allowed_cols: dict[str, OpSpec],
     params=None,
 ):
-    """
+    """应用过滤条件到查询对象。
+
     仅支持显式 (字段, 操作符) 元组形式的 allowed_cols，彻底告别自动推断。
-    示例：
-    allowed_cols = {
-        "id": ("id", "exact"),
-        "keyword": ("username,email", "contains"),
-        "username": ("username", "exact"),
-        "desc": ("desc", "contains"),
-        "age_min": ("age", "gte"),
-        "age_max": ("age", "lte"),
-    }
+
+    Args:
+        query: SQLAlchemy Query 对象
+        model: ORM 模型类
+        allowed_cols: 允许的过滤条件，格式为 {"参数名": ("字段名", "操作符")}
+        params: 查询参数，如果为None则使用request.args
+
+    Returns:
+        应用了过滤条件的新 Query 对象
+
+    Examples:
+        allowed_cols = {
+            "id": ("id", "exact"),
+            "keyword": ("username,email", "contains"),
+            "username": ("username", "exact"),
+            "desc": ("desc", "contains"),
+            "age_min": ("age", "gte"),
+            "age_max": ("age", "lte"),
+        }
     """
     if params is None:
-        from flask import request
-
         params = request.args
 
     for arg_name, (field_spec, op) in allowed_cols.items():
@@ -102,16 +120,18 @@ def apply_filter(
 def apply_sort(
     query, model, allowed_cols, default_col="id", default_dir="asc", params=None
 ):
-    """
-    通用排序函数：只操作 query，不依赖 flask request。
+    """通用排序函数：只操作 query，不依赖 flask request。
 
-    :param query:        SQLAlchemy Query 对象
-    :param model:        映射的 ORM 类（如 User）
-    :param allowed_cols: set / list  允许排序的字段名
-    :param default_col:  默认排序字段（ORM 属性名）
-    :param default_dir:  默认方向  'asc' | 'desc'
-    :param params:       外部已经解析好的 dict，若空则内部自己读 request.args
-    :return:             新的 Query 对象（链式调用）
+    Args:
+        query: SQLAlchemy Query 对象
+        model: 映射的 ORM 类（如 User）
+        allowed_cols: set / list 允许排序的字段名
+        default_col: 默认排序字段（ORM 属性名）
+        default_dir: 默认方向 'asc' | 'desc'
+        params: 外部已经解析好的 dict，若空则内部自己读 request.args
+
+    Returns:
+        新的 Query 对象（链式调用）
     """
     if params is None:  # 允许手动注入参数，方便单元测试
         params = request.args

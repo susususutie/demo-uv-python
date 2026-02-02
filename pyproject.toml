@@ -1,9 +1,23 @@
 [project]
 name = "demo-uv-python"
 version = "0.1.0"
-description = "Add your description here"
+description = "Python API开发入门教学项目 - 循序渐进的Flask最佳实践演示"
 readme = "README.md"
 requires-python = ">=3.13"
+authors = [
+    { name = "Developer", email = "dev@example.com" }
+]
+keywords = ["flask", "api", "tutorial", "python", "sqlalchemy"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Education",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.13",
+    "Framework :: Flask",
+    "Topic :: Education",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
 dependencies = [
     "black>=25.12.0",
     "flask>=3.1.2",
@@ -14,6 +28,52 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "httpx>=0.28.1",
     "pytest>=9.0.2",
     "pytest-flask>=1.3.0",
+    "pytest-cov>=6.0.0",
+]
+
+# 注意：本项目使用原生 UV 命令运行，无需额外配置
+# 常用命令见 README.md
+
+[tool.black]
+line-length = 88
+target-version = ['py313']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+    \.git
+  | \.venv
+  | venv
+  | migrations
+)/
+'''
+
+[tool.pytest.ini_options]
+# 注意：由于三个 demo 都有 tests 目录，同时运行会产生模块名冲突
+# 建议分别运行测试：
+#   uv run pytest demo1/tests -v
+#   uv run pytest demo2/tests -v  
+#   PYTHONPATH=demo3 uv run pytest demo3/tests -v
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"
+filterwarnings = [
+    "ignore::DeprecationWarning",
+]
+
+[tool.coverage.run]
+source = ["demo1", "demo2", "demo3"]
+omit = [
+    "*/tests/*",
+    "*/migrations/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if __name__ == .__main__.:",
 ]
