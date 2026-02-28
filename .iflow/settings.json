@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "mcp-pandoc": {
+      "command": "uvx",
+      "args": [
+        "--from",
+        "iflow-mcp_mcp-pandoc",
+        "mcp-pandoc"
+      ]
+    }
+  }
+}
