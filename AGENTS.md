@@ -2,42 +2,64 @@
 
 ## 项目概述
 
-这是一个面向Python初学者的API开发入门教学项目，通过三个循序渐进的Demo演示Flask API开发的最佳实践：
+这是一个面向 Python 初学者的 API 开发入门教学项目，通过三个循序渐进的 Demo 演示 Flask API 开发的最佳实践：
 
-- **demo1**: 基础Flask API（内存存储）
-- **demo2**: 数据库版API（单文件，SQLAlchemy）
-- **demo3**: 生产级模块化API（应用工厂、蓝图、迁移）
+- **demo1**: 基础 Flask API（内存存储）
+- **demo2**: 数据库版 API（单文件，SQLAlchemy）
+- **demo3**: 生产级模块化 API（应用工厂、蓝图、迁移、数据验证）
 
 ## 项目结构
 
 ```
 demo-uv-python/
-├── demo1/              # 基础示例
-│   ├── app.py          # 主应用文件
-│   ├── README.md       # Demo1 说明文档
-│   └── tests/          # 测试文件
-├── demo2/              # 数据库示例
-│   ├── app.py          # 主应用文件
-│   ├── README.md       # Demo2 说明文档
-│   ├── tests/          # 测试文件
-│   └── instance/       # 数据库文件目录
-├── demo3/              # 生产级示例
-│   ├── app/            # 应用包
-│   │   ├── __init__.py
-│   │   ├── models.py   # 数据模型
-│   │   ├── schemas.py  # 序列化模式
-│   │   ├── utils.py    # 工具函数
-│   │   ├── errors.py   # 错误处理（新增）
-│   │   ├── responses.py # 响应工具（新增）
-│   │   ├── extensions.py # 扩展实例
-│   │   └── views/      # 视图/路由
-│   ├── config.py       # 配置文件
-│   ├── run.py          # 启动脚本
-│   ├── tests/          # 测试文件
-│   └── migrations/     # 数据库迁移
-├── scripts/            # 工具脚本
-├── pyproject.toml     # UV 项目配置
-└── README.md          # 主文档
+├── demo1/                 # 基础示例
+│   ├── app.py            # 主应用文件
+│   ├── README.md         # Demo1 说明文档
+│   └── tests/            # 测试文件
+│       ├── conftest.py
+│       └── test_app.py
+├── demo2/                 # 数据库示例
+│   ├── app.py            # 主应用文件
+│   ├── README.md         # Demo2 说明文档
+│   ├── instance/         # 数据库文件目录
+│   └── tests/            # 测试文件
+│       ├── conftest.py
+│       ├── test_health.py
+│       ├── test_posts.py
+│       └── test_users.py
+├── demo3/                 # 生产级示例
+│   ├── app/              # 应用包
+│   │   ├── __init__.py   # 应用工厂
+│   │   ├── models.py     # 数据模型（User, Post, Tag）
+│   │   ├── schemas.py    # Marshmallow 序列化模式
+│   │   ├── utils.py      # 工具函数
+│   │   ├── errors.py     # 错误处理
+│   │   ├── responses.py  # 统一响应格式
+│   │   ├── extensions.py # 扩展实例（db, migrate）
+│   │   └── views/        # 视图/路由（蓝图）
+│   │       ├── __init__.py
+│   │       ├── endpoints.py  # API 端点列表
+│   │       ├── health.py     # 健康检查
+│   │       ├── user.py       # 用户管理
+│   │       ├── post.py       # 文章管理
+│   │       └── tag.py        # 标签管理
+│   ├── config.py         # 配置文件
+│   ├── run.py            # 启动脚本
+│   ├── tests/            # 测试文件
+│   │   ├── conftest.py
+│   │   ├── test_models.py
+│   │   ├── test_user.py
+│   │   ├── test_post.py
+│   │   ├── test_tag.py
+│   │   ├── test_health.py
+│   │   └── test_endpoints.py
+│   └── migrations/       # 数据库迁移（Alembic）
+├── scripts/              # 工具脚本
+│   └── batch-insert.py   # 批量数据生成脚本
+├── pyproject.toml       # UV 项目配置
+├── uv.lock              # 依赖锁定文件
+├── README.md            # 主文档
+└── AGENTS.md            # 本文件
 ```
 
 ## 工具链与选型说明
@@ -131,12 +153,6 @@ uv run pytest demo1/tests -v
 - 需要频繁切换不同参数运行同一命令
 - 团队成员对长命令感到困扰
 
-### 代码风格
-
-- **格式化**：Black（行长度 88）
-- **类型注解**：Python 3.9+ 内置类型（`list[str]` 而非 `List[str]`）
-- **文档字符串**：Google Style
-
 ### 依赖管理
 
 生产依赖：
@@ -144,7 +160,9 @@ uv run pytest demo1/tests -v
 dependencies = [
     "flask>=3.1.2",
     "flask-sqlalchemy>=3.1.1",
-    # ...
+    "flask-migrate>=4.1.0",    # 数据库迁移
+    "marshmallow>=4.2.0",      # 数据序列化/验证
+    "black>=25.12.0",          # 代码格式化
 ]
 ```
 
@@ -154,18 +172,38 @@ dependencies = [
 dev = [
     "pytest>=9.0.2",
     "pytest-flask>=1.3.0",
-    # ...
+    "pytest-cov>=6.0.0",       # 测试覆盖率
+    "httpx>=0.28.1",           # HTTP 客户端（测试和脚本）
 ]
 ```
+
+### 数据验证：Marshmallow
+
+Demo3 使用 Marshmallow 进行数据序列化和验证：
+
+```python
+from marshmallow import Schema, fields, validate
+
+class UserSchema(Schema):
+    id = fields.Integer(dump_only=True)
+    username = fields.String(required=True, validate=validate.Length(min=1, max=80))
+    email = fields.Email(required=True)
+    created_at = fields.DateTime(dump_only=True)
+```
+
+**优势**：
+- 声明式 schema 定义
+- 自动数据验证
+- 序列化/反序列化一体化
+- 与 Flask 集成良好
 
 ## 代码规范
 
 ### Python 风格
 
-- 遵循 PEP 8 规范
-- 使用 Black 进行代码格式化（行长度 88）
-- 使用类型注解
-- 编写完整的文档字符串（Google Style）
+- **格式化**：Black（行长度 88）
+- **类型注解**：Python 3.9+ 内置类型（`list[str]` 而非 `List[str]`）
+- **文档字符串**：Google Style
 
 ### 文档字符串格式
 
@@ -209,7 +247,9 @@ def function_name(param1: str, param2: int) -> dict:
         "page": 1,
         "per_page": 10,
         "total": 100,
-        "pages": 10
+        "pages": 10,
+        "has_prev": false,
+        "has_next": true
     }
 }
 ```
@@ -229,11 +269,12 @@ def function_name(param1: str, param2: int) -> dict:
 
 ### 添加新功能
 
-1. 更新数据模型（如果需要）
-2. 更新序列化模式
-3. 实现视图函数
-4. 添加测试用例
-5. 更新文档
+1. 更新数据模型（`demo3/app/models.py`）
+2. 更新序列化模式（`demo3/app/schemas.py`）
+3. 实现视图函数（`demo3/app/views/`）
+4. 添加测试用例（`demo3/tests/`）
+5. 生成数据库迁移（如需要）
+6. 更新文档
 
 ### 数据库迁移（demo3）
 
@@ -248,6 +289,12 @@ cd demo3 && uv run flask --app "app:create_app('develop')" db migrate -m "描述
 
 # 应用迁移
 cd demo3 && uv run flask --app "app:create_app('develop')" db upgrade
+
+# 查看历史
+cd demo3 && uv run flask --app "app:create_app('develop')" db history
+
+# 回滚到上一个版本
+cd demo3 && uv run flask --app "app:create_app('develop')" db downgrade
 ```
 
 ## 常用命令速查
@@ -273,8 +320,13 @@ uv run pytest demo1/tests -v
 uv run pytest demo2/tests -v
 uv run pytest demo3/tests -v
 
-# 或使用分号顺序执行
-uv run pytest demo1/tests -v && uv run pytest demo2/tests -v && uv run pytest demo3/tests -v
+# 生成覆盖率报告
+uv run pytest demo1/tests --cov=demo1 --cov-report=html
+uv run pytest demo2/tests --cov=demo2 --cov-report=html
+uv run pytest demo3/tests --cov=app --cov-report=html
+
+# 查看 HTML 报告
+open htmlcov/index.html  # macOS
 ```
 
 ### 代码质量
@@ -300,18 +352,124 @@ cd demo3 && uv run flask --app "app:create_app('develop')" db migrate -m "描述
 cd demo3 && uv run flask --app "app:create_app('develop')" db upgrade
 ```
 
-### 其他
+### 数据生成
 
 ```bash
-# 生成测试数据
+# 批量生成测试数据（需要服务运行在 127.0.0.1:3000）
 uv run scripts/batch-insert.py --users 10 --posts 5
 ```
 
+脚本使用 [PEP 723](https://peps.python.org/pep-0723/) 内联依赖声明：
+```python
+#!/usr/bin/env uv run
+# /// script
+# dependencies = ["httpx"]
+# ///
+```
+
+## 功能特性对比
+
+| 特性 | Demo1 | Demo2 | Demo3 |
+|------|-------|-------|-------|
+| 存储方式 | 内存 | SQLite | SQLite |
+| 数据持久化 | ❌ | ✅ | ✅ |
+| ORM | ❌ | SQLAlchemy | SQLAlchemy |
+| 代码结构 | 单文件 | 单文件 | 模块化 |
+| 应用工厂 | ❌ | ❌ | ✅ |
+| 蓝图路由 | ❌ | ❌ | ✅ |
+| 数据验证 | 手动 | 手动 | Marshmallow |
+| 数据库迁移 | ❌ | ❌ | ✅ |
+| 错误处理 | 简单 | 结构化 | 完整异常类 |
+| 日志配置 | ❌ | ❌ | ✅ |
+| API 端点列表 | ❌ | ❌ | ✅ |
+| 标签系统 | ❌ | ❌ | ✅ |
+| 测试覆盖 | ✅ | ✅ | ✅ |
+| 生产就绪 | ❌ | ❌ | ✅ |
+
 ## 注意事项
 
-1. **渐进式教学**：保持三个demo的递进关系，每个demo在前一个基础上增加新概念
-2. **中文支持**：所有JSON响应需要设置 `ensure_ascii=False`
+1. **渐进式教学**：保持三个 demo 的递进关系，每个 demo 在前一个基础上增加新概念
+2. **中文支持**：所有 JSON 响应需要设置 `ensure_ascii=False`
 3. **错误处理**：统一错误响应格式，包含错误码和详细信息
 4. **测试覆盖**：核心功能必须有测试覆盖
 5. **依赖最小化**：面向初学者，避免引入过多工具链
 6. **原生 UV**：所有命令使用 `uv run` 直接运行，不引入额外工具
+7. **类型注解**：使用 Python 3.9+ 内置泛型类型（如 `list[str]` 而非 `typing.List[str]`）
+
+## API 使用示例
+
+启动任意 Demo 后，可以使用以下命令测试 API：
+
+```bash
+# 健康检查
+curl http://127.0.0.1:3000/health
+
+# 获取 API 端点列表（仅 Demo3）
+curl http://127.0.0.1:3000/api/endpoints
+
+# 创建用户
+curl -X POST http://127.0.0.1:3000/api/users \
+    -H "Content-Type: application/json" \
+    -d '{"username": "张三", "email": "zhangsan@example.com"}'
+
+# 获取用户列表（分页）
+curl "http://127.0.0.1:3000/api/users?page=1&per_page=5"
+
+# 搜索用户
+curl "http://127.0.0.1:3000/api/users?keyword=zhang"
+
+# 创建文章
+curl -X POST http://127.0.0.1:3000/api/posts \
+    -H "Content-Type: application/json" \
+    -d '{"user_id": 1, "title": "第一篇文章", "content": "内容..."}'
+
+# 获取已发布文章
+curl "http://127.0.0.1:3000/api/posts?published=true"
+
+# 创建标签（仅 Demo3）
+curl -X POST http://127.0.0.1:3000/api/tags \
+    -H "Content-Type: application/json" \
+    -d '{"name": "技术"}'
+```
+
+## 环境变量
+
+```bash
+# 配置环境（develop/test/product）
+export FLASK_CONFIG=develop
+
+# 数据库 URL（生产环境）
+export DATABASE_URL=postgresql://user:pass@localhost/dbname
+
+# 密钥（生产环境必需）
+export SECRET_KEY=your-secret-key
+```
+
+## 学习路径建议
+
+### 初学者路径
+
+1. **Demo1**：理解 Flask 基础概念
+   - 路由定义
+   - 请求处理
+   - JSON 响应
+
+2. **Demo2**：学习数据库操作
+   - SQLAlchemy ORM
+   - 数据模型定义
+   - 关联关系
+   - 分页查询
+
+3. **Demo3**：掌握生产级架构
+   - 应用工厂
+   - 蓝图组织
+   - 数据库迁移
+   - 数据验证
+   - 日志配置
+
+### 进阶学习
+
+- 阅读各 Demo 的 README.md 了解详细说明
+- 查看测试文件学习测试编写
+- 研究错误处理和日志配置
+- 分析 Marshmallow schema 的使用
