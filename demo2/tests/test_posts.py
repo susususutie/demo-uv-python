@@ -93,6 +93,60 @@ class TestListPosts:
         assert len(data["list"]) == 1
         assert data["list"][0]["title"] == "Published"
 
+    def test_filter_by_keyword_in_title(self, client, sample_user):
+        """测试按标题关键词搜索。"""
+        # 创建文章
+        client.post(
+            "/api/posts",
+            json={
+                "title": "Python Tutorial",
+                "content": "Learn Python",
+                "user_id": sample_user["id"],
+            },
+        )
+        client.post(
+            "/api/posts",
+            json={
+                "title": "Flask Guide",
+                "content": "Learn Flask",
+                "user_id": sample_user["id"],
+            },
+        )
+
+        # 按关键词搜索
+        response = client.get("/api/posts?keyword=Python")
+        data = response.get_json()
+
+        assert len(data["list"]) == 1
+        assert data["list"][0]["title"] == "Python Tutorial"
+
+    def test_filter_by_keyword_in_content(self, client, sample_user):
+        """测试按内容关键词搜索。"""
+        # 创建文章
+        client.post(
+            "/api/posts",
+            json={
+                "title": "Tutorial One",
+                "content": "Advanced Python concepts",
+                "user_id": sample_user["id"],
+            },
+        )
+        client.post(
+            "/api/posts",
+            json={
+                "title": "Tutorial Two",
+                "content": "Basic JavaScript guide",
+                "user_id": sample_user["id"],
+            },
+        )
+
+        # 按内容关键词搜索
+        response = client.get("/api/posts?keyword=Python")
+        data = response.get_json()
+
+        assert len(data["list"]) == 1
+        assert data["list"][0]["title"] == "Tutorial One"
+
 
 class TestGetPost:
     """测试获取单篇文章。"""
@@ -103,7 +157,13 @@ class TestGetPost:
         response = client.get(f"/api/posts/{post_id}")
 
         assert response.status_code == 200
-        assert response.get_json()["title"] == "Test Post"
+        data = response.get_json()
+        assert data["title"] == "Test Post"
+        assert "content" in data
+        assert "published" in data
+        assert "created_at" in data
+        assert "updated_at" in data
+        assert "user_id" in data
 
     def test_get_nonexistent(self, client):
         """测试获取不存在的文章。"""
@@ -167,11 +227,13 @@ class TestDeletePost:
     """测试删除文章。"""
 
     def test_delete_success(self, client, sample_post):
-        """测试成功删除。"""
+        """测试成功删除，验证返回204无内容状态码。"""
         post_id = sample_post["id"]
         response = client.delete(f"/api/posts/{post_id}")
 
+        # 验证返回 204 No Content
         assert response.status_code == 204
+        assert response.data == b""
 
         # 验证已删除
         get_response = client.get(f"/api/posts/{post_id}")

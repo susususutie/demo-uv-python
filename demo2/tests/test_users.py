@@ -155,3 +155,25 @@ class TestDeleteUser:
         response = client.delete("/api/users/999")
 
         assert response.status_code == 404
+
+    def test_delete_user_with_posts(self, client, sample_user):
+        """测试删除带有文章的用户，验证返回deleted_posts计数。"""
+        user_id = sample_user["id"]
+
+        # 先创建几篇文章
+        for i in range(3):
+            client.post(
+                "/api/posts",
+                json={
+                    "title": f"Post {i}",
+                    "content": f"Content {i}",
+                    "user_id": user_id,
+                },
+            )
+
+        # 删除用户
+        response = client.delete(f"/api/users/{user_id}")
+
+        assert response.status_code == 200
+        data = response.get_json()
+        assert data["deleted_posts"] == 3

@@ -171,3 +171,59 @@ class TestErrorHandling:
         response = client.post("/")  # 根路径只支持 GET
 
         assert response.status_code == 405
+        data = response.get_json()
+        assert "error" in data
+
+    def test_internal_error_handler_exists(self, app):
+        """测试 500 错误处理器已注册。"""
+        # 验证错误处理器已注册
+        # 由于 Flask 在 TESTING=True 模式下会直接抛出异常而不是调用错误处理器，
+        # 我们只验证处理器存在
+        error_handlers = app.error_handler_spec
+
+        # Flask 的错误处理器结构是嵌套字典
+        # 500 错误处理器应该在 None 键下（表示全局处理器）
+        has_500_handler = False
+        for key, spec in error_handlers.items():
+            if isinstance(spec, dict) and 500 in spec:
+                has_500_handler = True
+                break
+
+        assert has_500_handler, "500 错误处理器未注册"
+
+    def test_not_found_handler_directly(self, app):
+        """直接测试 404 错误处理函数。"""
+        with app.app_context():
+            from app import not_found
+
+            class MockError:
+                pass
+
+            response = not_found(MockError())
+            assert response[1] == 404
+            assert "error" in response[0].get_json()
+
+    def test_method_not_allowed_handler_directly(self, app):
+        """直接测试 405 错误处理函数。"""
+        with app.app_context():
+            from app import method_not_allowed
+
+            class MockError:
+                pass
+
+            response = method_not_allowed(MockError())
+            assert response[1] == 405
+            assert "error" in response[0].get_json()
+
+    def test_internal_error_handler_directly(self, app):
+        """直接测试 500 错误处理函数。"""
+        with app.app_context():
+            from app import internal_error
+
+            class MockError:
+                pass
+
+            response = internal_error(MockError())
+            assert response[1] == 500
+            assert "error" in response[0].get_json()
+            assert "服务器内部错误" in response[0].get_json()["error"]
