@@ -26,20 +26,52 @@
 ```
 demo-uv-python/
 ├── demo1/                 # 基础示例：内存存储
-│   ├── app.py
-│   ├── tests/
-│   └── README.md
+│   ├── app.py            # 主应用文件
+│   ├── tests/            # 测试文件
+│   │   ├── conftest.py
+│   │   └── test_app.py
+│   └── README.md         # Demo1 详细文档
 ├── demo2/                 # 进阶示例：数据库持久化
-│   ├── app.py
-│   ├── tests/
-│   └── README.md
+│   ├── app.py            # 主应用文件
+│   ├── instance/         # 数据库文件目录
+│   ├── tests/            # 测试文件
+│   │   ├── conftest.py
+│   │   ├── test_health.py
+│   │   ├── test_posts.py
+│   │   └── test_users.py
+│   └── README.md         # Demo2 详细文档
 ├── demo3/                 # 生产示例：模块化架构
-│   ├── app/
-│   ├── tests/
-│   ├── migrations/
-│   └── README.md
-├── scripts/               # 工具脚本
-├── pyproject.toml        # UV 项目配置
+│   ├── app/              # 应用包
+│   │   ├── __init__.py   # 应用工厂
+│   │   ├── models.py     # 数据模型（User, Post, Tag）
+│   │   ├── schemas.py    # Marshmallow 序列化模式
+│   │   ├── errors.py     # 错误处理
+│   │   ├── responses.py  # 统一响应格式
+│   │   ├── extensions.py # 扩展实例（db, migrate）
+│   │   ├── utils.py      # 工具函数
+│   │   └── views/        # 视图/路由（蓝图）
+│   │       ├── __init__.py
+│   │       ├── endpoints.py  # API 端点列表
+│   │       ├── health.py     # 健康检查
+│   │       ├── user.py       # 用户管理
+│   │       ├── post.py       # 文章管理
+│   │       └── tag.py        # 标签管理
+│   ├── config.py         # 配置文件
+│   ├── run.py            # 启动脚本
+│   ├── tests/            # 测试文件
+│   │   ├── conftest.py
+│   │   ├── test_models.py
+│   │   ├── test_user.py
+│   │   ├── test_post.py
+│   │   ├── test_tag.py
+│   │   ├── test_health.py
+│   │   └── test_endpoints.py
+│   ├── migrations/       # 数据库迁移（Alembic）
+│   └── README.md         # Demo3 详细文档
+├── scripts/              # 工具脚本
+│   └── batch-insert.py   # 批量数据生成脚本
+├── pyproject.toml       # UV 项目配置
+├── uv.lock              # 依赖锁定文件
 ├── AGENTS.md            # 开发规范和工具选型说明
 └── README.md            # 本文档
 ```
@@ -92,8 +124,13 @@ uv run pytest demo1/tests -v
 uv run pytest demo2/tests -v
 uv run pytest demo3/tests -v
 
-# 或使用分号顺序执行
-uv run pytest demo1/tests -v && uv run pytest demo2/tests -v && uv run pytest demo3/tests -v
+# 生成测试覆盖率报告
+uv run pytest demo1/tests --cov=demo1 --cov-report=html
+uv run pytest demo2/tests --cov=demo2 --cov-report=html
+uv run pytest demo3/tests --cov=app --cov-report=html
+
+# 查看 HTML 报告
+open htmlcov/index.html  # macOS
 ```
 
 ### 代码质量
@@ -120,12 +157,15 @@ cd demo3 && uv run flask --app "app:create_app('develop')" db migrate -m "描述
 
 # 应用迁移
 cd demo3 && uv run flask --app "app:create_app('develop')" db upgrade
+
+# 查看迁移历史
+cd demo3 && uv run flask --app "app:create_app('develop')" db history
 ```
 
-### 其他工具
+### 数据生成
 
 ```bash
-# 生成测试数据
+# 批量生成测试数据（需要服务运行在 127.0.0.1:3000）
 uv run scripts/batch-insert.py --users 10 --posts 5
 ```
 
@@ -174,6 +214,8 @@ cd demo2 && uv run app.py
 - 统一响应格式
 - 完整错误处理
 - 日志配置
+- API 端点自动发现
+- 标签系统
 - 全面测试覆盖
 
 **适合学习**：大型项目架构、生产最佳实践
@@ -197,6 +239,9 @@ cd demo3 && uv run run.py
 | 数据验证 | 手动 | 手动 | Marshmallow |
 | 数据库迁移 | ❌ | ❌ | ✅ |
 | 错误处理 | 简单 | 结构化 | 完整异常类 |
+| 日志配置 | ❌ | ❌ | ✅ |
+| API 端点列表 | ❌ | ❌ | ✅ |
+| 标签系统 | ❌ | ❌ | ✅ |
 | 测试覆盖 | ✅ | ✅ | ✅ |
 | 生产就绪 | ❌ | ❌ | ✅ |
 
@@ -220,6 +265,9 @@ open htmlcov/index.html  # macOS
 # 健康检查
 curl http://127.0.0.1:3000/health
 
+# 获取 API 端点列表（仅 Demo3）
+curl http://127.0.0.1:3000/api/endpoints
+
 # 创建用户
 curl -X POST http://127.0.0.1:3000/api/users \
     -H "Content-Type: application/json" \
@@ -238,6 +286,14 @@ curl -X POST http://127.0.0.1:3000/api/posts \
 
 # 获取已发布文章
 curl "http://127.0.0.1:3000/api/posts?published=true"
+
+# 创建标签（仅 Demo3）
+curl -X POST http://127.0.0.1:3000/api/tags \
+    -H "Content-Type: application/json" \
+    -d '{"name": "技术"}'
+
+# 获取标签列表（仅 Demo3）
+curl http://127.0.0.1:3000/api/tags
 ```
 
 ## ⚙️ 配置说明
@@ -282,12 +338,15 @@ uv run black demo1/ demo2/ demo3/ --line-length 88
    - 应用工厂
    - 蓝图组织
    - 数据库迁移
+   - 数据验证（Marshmallow）
+   - 日志配置
 
 ### 进阶学习
 
 - 阅读 [AGENTS.md](AGENTS.md) 了解开发规范和工具选型
 - 查看测试文件学习测试编写
 - 研究错误处理和日志配置
+- 分析 Marshmallow schema 的使用
 
 ## 🎯 工具选型说明
 
